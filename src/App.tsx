@@ -1,6 +1,6 @@
 import { Native, ChainId, CurrencyAmount, TradeType, Percent } from '@pancakeswap/sdk'
 import { SmartRouter, SmartRouterTrade, SMART_ROUTER_ADDRESSES, SwapRouter } from '@pancakeswap/smart-router/evm'
-import { bscTokens } from '@pancakeswap/tokens'
+import { bscTokens, bscTestnetTokens } from '@pancakeswap/tokens'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   WagmiConfig,
@@ -18,15 +18,17 @@ import { GraphQLClient } from 'graphql-request'
 
 import './App.css'
 
-const chainId = ChainId.BSC
+const chainId = ChainId.BSC_TESTNET
 // const swapFrom = Native.onChain(chainId);
 // const swapTo = bscTokens.usdt
-const swapFrom = bscTokens.usdt
+const swapFrom = bscTestnetTokens.usdt
+
 const swapTo = Native.onChain(chainId)
 
 const publicClient = createPublicClient({
   chain: mainnet,
-  transport: http('https://bsc-dataseed1.binance.org'),
+  // transport: http('https://bsc-dataseed1.binance.org'),
+  transport: http('https://data-seed-prebsc-1-s1.binance.org:8545'),//http('https://bsc-dataseed1.binance.org'),
   batch: {
     multicall: {
       batchSize: 1024 * 200,
@@ -40,8 +42,12 @@ const config = createConfig({
   publicClient,
 })
 
-const v3SubgraphClient = new GraphQLClient('https://api.thegraph.com/subgraphs/name/pancakeswap/exchange-v3-bsc')
-const v2SubgraphClient = new GraphQLClient('https://proxy-worker-api.pancakeswap.com/bsc-exchange')
+// const v3SubgraphClient = new GraphQLClient('https://api.thegraph.com/subgraphs/name/pancakeswap/exchange-v3-bsc')
+const v3SubgraphClient = new GraphQLClient('https://api.thegraph.com/subgraphs/name/pancakeswap/exchange-v3-chapel')
+// 
+// const v2SubgraphClient = new GraphQLClient('https://proxy-worker-api.pancakeswap.com/bsc-exchange')
+const v2SubgraphClient = new GraphQLClient('https://api.thegraph.com/subgraphs/name/vmatskiv/pancakeswap-v2')
+
 
 const quoteProvider = SmartRouter.createQuoteProvider({
   onChainProvider: () => publicClient,
@@ -125,6 +131,7 @@ function Main() {
       data: calldata,
       value: hexToBigInt(value),
     }
+    // need to call allowance
     const gasEstimate = await publicClient.estimateGas(tx)
     await sendTransactionAsync({
       account: address,
